@@ -23,9 +23,9 @@ cherrypy.quickstart(Root(), '/', config={
         'tools.staticfile.on': True,
         'tools.staticfile.filename': abspath('./index.html')
     },
-    '/app.js': {
-        'tools.staticfile.on': True,
-        'tools.staticfile.filename': abspath('./index.html')
+    '/js': {
+        'tools.staticdir.on': True,
+        'tools.staticdir.dir': abspath('./js')
     },
     '/ws': {
         'tools.websocket.on': True,
