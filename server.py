@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import cherrypy
 from os.path import abspath
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
@@ -9,12 +11,21 @@ cherrypy.tools.websocket = WebSocketTool()
 
 
 class WebSocketHandler(WebSocket):
+    def opened(self):
+        print('WS connection opened from', self.peer_address)
+
+    def closed(self, code, reason=None):
+        print('WS connection closed with code', code, reason)
+
     def received_message(self, message):
-        return 'ok'
+        print('Received message')
+        print(message)
+
 
 class Root(object):
     @cherrypy.expose
     def ws(self):
+        print('At root object')
         handler = cherrypy.request.ws_handler
 
 
