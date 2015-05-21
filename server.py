@@ -25,21 +25,17 @@ class WebSocketHandler(WebSocket):
 class Root(object):
     @cherrypy.expose
     def ws(self):
-        print('At root object')
         handler = cherrypy.request.ws_handler
 
 
 cherrypy.quickstart(Root(), '/', config={
-    '/': {
-        'tools.staticfile.on': True,
-        'tools.staticfile.filename': abspath('./index.html')
-    },
-    '/js': {
-        'tools.staticdir.on': True,
-        'tools.staticdir.dir': abspath('./js')
-    },
     '/ws': {
         'tools.websocket.on': True,
         'tools.websocket.handler_cls': WebSocketHandler,
+        },
+    '/': {
+        'tools.staticdir.on': True,
+        'tools.staticdir.dir': abspath('./data'),
+        'tools.staticdir.index': 'index.html',
     },
 })
