@@ -6,6 +6,8 @@ import cherrypy
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
 from ws4py.websocket import WebSocket
 
+from application import Application
+
 
 try:
     import simplejson as json
@@ -16,15 +18,19 @@ cherrypy.config.update({'server.socket_port': 9000})
 WebSocketPlugin(cherrypy.engine).subscribe()
 cherrypy.tools.websocket = WebSocketTool()
 
-logging.basicConfig(format=logging.BASIC_FORMAT)
+logging.basicConfig(format=logging.BASIC_FORMAT, level=logging.DEBUG)
 logger = logging.getLogger()
+
+app = Application()
 
 
 class WebSocketHandler(WebSocket):
     def opened(self):
+        app.new_connection(self)
         print('WS connection opened from', self.peer_address)
 
     def closed(self, code, reason=None):
+        app.closed_connection(self)
         print('WS connection closed with code', code, reason)
 
     def received_message(self, message):
@@ -36,6 +42,11 @@ class WebSocketHandler(WebSocket):
         except Exception as e:
             logger.exception('JSON decode failed for message')
             return
+        app.handle_request(self, request)
+
+    def send(self, payload, binary=False):
+        logger.debug("Answer: " + str(payload))
+        super(WebSocketHandler, self).send(payload, binary)
 
 
 class Root(object):

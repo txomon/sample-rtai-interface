@@ -1,4 +1,3 @@
-
 /**
  * The API should be the following:
  *
@@ -8,18 +7,43 @@
  *
  *
  */
-var ws = new WebSocket("ws://" + location.host + '/ws');
+var application = new function () {
+    this.handle_initialize = function (msg) {
+        console.log("Handling initialization");
+    };
 
-ws.onopen = function (ev) {
-    console.log("Opened ws " + ev);
+    this.onmessage = function (e) {
+        try {
+            var o = JSON.parse(e.data);
+        } catch (err) {
+            console.error("Data unable to parse:" + e.data);
+            return;
+        }
+        if (o['type'] == 'error') {
+            console.log('Error ocurred in backend: ' + o['message']);
+        }
+        else if (o['type'] == 'initialize') {
+            this.handle_initialize(o['message']);
+        }
+    };
+
+};
+
+ws = new WebSocket("ws://" + location.host + '/ws');
+
+ws.onopen = function (e) {
+    console.log("Opened ws " + e);
     this.send('{"type": "initialize"}');
 };
-ws.onerror = function (ev) {
-    console.log("Error on the WS" + ev);
+
+ws.onerror = function (e) {
+    console.log("Error on the WS" + e);
 };
-ws.onclose = function (ev) {
+
+ws.onclose = function (e) {
     console.log("WS closed!");
-}
-ws.onmessage = function (msg) {
-    console.log("Received "+ msg);
-}
+};
+
+ws.onmessage = function (e) {
+    application.onmessage(e);
+};
