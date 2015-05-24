@@ -8,8 +8,46 @@
  *
  */
 var application = new function () {
+    this.get_container = function () {
+        var conts = document.getElementsByTagName('div');
+        var container;
+        for (var i = 0; i < conts.length; i++) {
+            container = conts[i];
+            if (container.id == 'container')
+                break;
+        }
+        if (!container || container.id != 'container') {
+            container = document.createElement('div');
+            container.id = 'container';
+            var body = document.getElementsByTagName('body')[0];
+            body.appendChild(container);
+        }
+        return container;
+    };
+
+    this.get_display = function (display_id) {
+        var container = this.get_container();
+        var display = document.getElementById(display_id);
+        if (!display) {
+            var display = document.createElement("section");
+            display.id = display_id;
+            container.appendChild(display);
+        }
+        return display;
+    };
+
+    this.update_display = function (data) {
+        var display = this.get_display(data['id']);
+        if (!display.innerHTML)
+            display.innerHTML = '<div></div>';
+    };
+
     this.handle_initialize = function (msg) {
         console.log("Handling initialization");
+        for (var i = 0; i < msg['displays'].length; i++) {
+            var display = msg['displays'][i];
+            this.update_display(display);
+        }
     };
 
     this.onmessage = function (e) {
@@ -24,6 +62,8 @@ var application = new function () {
         }
         else if (o['type'] == 'initialize') {
             this.handle_initialize(o['message']);
+        } else {
+            console.log('No idea on what to do with type ' + o['type']);
         }
     };
 

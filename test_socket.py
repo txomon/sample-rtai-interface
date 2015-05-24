@@ -1,27 +1,53 @@
 from __future__ import print_function
 import logging
-from os.path import abspath
+from threading import Timer
+from collections import deque
 
 import cherrypy
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
 from ws4py.websocket import WebSocket
-
-from application import Application
-
 
 try:
     import simplejson as json
 except ImportError:
     import json
 
-cherrypy.config.update({'server.socket_port': 9000})
+cherrypy.config.update({'server.socket_port': 9001})
 WebSocketPlugin(cherrypy.engine).subscribe()
 cherrypy.tools.websocket = WebSocketTool()
 
 logging.basicConfig(format=logging.BASIC_FORMAT, level=logging.DEBUG)
 logger = logging.getLogger()
 
-app = Application('ws://127.0.0.1:9001/')
+fake_data = deque(range(101) + range(99, 0, -1))
+
+
+class Faker(object):
+    def __init__(self):
+        self.connections = []
+        t = Timer(0.1, self.send_data)
+        t.start()
+
+    def new_connection(self, con):
+        self.connections.append(con)
+
+    def closed_connection(self, con):
+        self.connections.remove(con)
+
+    def handle_request(self, con, msg):
+        logger.log("Received: " + repr(msg))
+
+    def send_data(self):
+        data = fake_data.popleft()
+        fake_data.append(data)
+        logger.debug("Now data: " + repr(data))
+        for con in self.connections:
+            con.send('{"data":' + repr(data) + '}')
+        t = Timer(0.1, self.send_data)
+        t.start()
+
+
+app = Faker()
 
 
 class WebSocketHandler(WebSocket):
@@ -51,18 +77,13 @@ class WebSocketHandler(WebSocket):
 
 class Root(object):
     @cherrypy.expose
-    def ws(self):
+    def index(self):
         handler = cherrypy.request.ws_handler
 
 
 cherrypy.quickstart(Root(), '/', config={
-    '/ws': {
+    '/': {
         'tools.websocket.on': True,
         'tools.websocket.handler_cls': WebSocketHandler,
-    },
-    '/': {
-        'tools.staticdir.on': True,
-        'tools.staticdir.dir': abspath('./data'),
-        'tools.staticdir.index': 'index.html',
     },
 })
