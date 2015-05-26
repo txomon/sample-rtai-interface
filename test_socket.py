@@ -25,7 +25,7 @@ fake_data = deque(range(101) + range(99, 0, -1))
 class Faker(object):
     def __init__(self):
         self.connections = []
-        t = Timer(0.1, self.send_data)
+        t = Timer(0.5, self.send_data)
         t.start()
 
     def new_connection(self, con):

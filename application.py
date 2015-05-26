@@ -63,7 +63,7 @@ class Application(object):
                               },
                               {
                                   'id': 1,
-                                  'data': [d['data'] - 2],
+                                  'data': [abs(d['data'] - 50)],
                               },
                           ],
                           'controls': [],
