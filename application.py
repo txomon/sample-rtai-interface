@@ -54,16 +54,24 @@ class Application(object):
         except ValueError:
             logger.exception("Exception on json decoding")
             raise
+        if d['type'] == 'scope':
+            self.handle_scope(d['message'])
+
+    def handle_scope(self, msg):
         graph_data = [{
                           'id': 'main',
                           'signals': [
                               {
                                   'id': 0,
-                                  'data': [d['data']],
+                                  'data': [msg['time']],
                               },
                               {
                                   'id': 1,
-                                  'data': [abs(d['data'] - 50)],
+                                  'data': [msg['setpoint']],
+                              },
+                              {
+                                  'id': 2,
+                                  'data': [msg['feedback']],
                               },
                           ],
                           'controls': [],
